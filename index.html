@@ -97,6 +97,20 @@
   .delete-confirm { background: var(--bg-alt); border: 1px solid var(--line-strong); border-radius: 8px; padding: 16px; margin-top: 12px; }
   .article-body p { font-size: 18px; line-height: 1.7; color: var(--fg); margin: 0; }
   .tldr-box { background: var(--bg-alt); border-left: 4px solid var(--accent-text); border-radius: 4px; padding: 20px 24px; font-size: 18px; line-height: 1.6; color: var(--fg); }
+  .rich-toolbar { display: flex; gap: 6px; margin-bottom: 8px; }
+  .rich-toolbar button {
+    border: 1px solid var(--line-strong); background: var(--bg); color: var(--fg);
+    border-radius: 6px; padding: 6px 14px; font-size: 14px; cursor: pointer; font-family: inherit; min-width: 36px;
+  }
+  .rich-toolbar button:hover { background: var(--bg-alt); }
+  .rich-editor {
+    min-height: 220px; border: 1px solid var(--line-strong); border-radius: 6px; padding: 12px 14px;
+    font-size: 16px; line-height: 1.6; background: var(--bg); color: var(--fg); margin-bottom: 20px;
+  }
+  .rich-editor:focus { outline: 2px solid var(--accent-text); outline-offset: -1px; }
+  .rich-editor p { margin: 0 0 14px; }
+  .rich-editor p:last-child { margin-bottom: 0; }
+  .chip-draft { background: var(--bg-alt); color: var(--fg-dim); border: 1px solid var(--line-strong); }
 </style>
 </head>
 <body>
@@ -182,8 +196,44 @@
     return null;
   }
 
+  function isPublished(a) { return (a.status || 'published') !== 'draft'; }
+  function publishedArticles() { return ARTICLES.filter(isPublished); }
+
+  var ALLOWED_TAGS = { P: 1, STRONG: 1, B: 1, EM: 1, I: 1, S: 1, STRIKE: 1, U: 1, BR: 1 };
+  function sanitizeHtml(html) {
+    var container = document.createElement('div');
+    container.innerHTML = html;
+    (function clean(node) {
+      var child = node.firstChild;
+      while (child) {
+        var next = child.nextSibling;
+        if (child.nodeType === 1) {
+          if (!ALLOWED_TAGS[child.tagName]) {
+            while (child.firstChild) node.insertBefore(child.firstChild, child);
+            node.removeChild(child);
+          } else {
+            while (child.attributes.length) child.removeAttribute(child.attributes[0].name);
+            clean(child);
+          }
+        } else if (child.nodeType !== 3) {
+          node.removeChild(child);
+        }
+        child = next;
+      }
+    })(container);
+    return container.innerHTML;
+  }
+
+  function bodyParagraphsToHtml(body) {
+    return (body || []).map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('');
+  }
+
   function heroArticle() {
-    return (HERO_ID && findArticle(HERO_ID)) || ARTICLES[0] || null;
+    var pub = publishedArticles();
+    if (HERO_ID) {
+      for (var i = 0; i < pub.length; i++) if (pub[i].id === HERO_ID) return pub[i];
+    }
+    return pub[0] || null;
   }
 
   function heroCardHtml(a) {
@@ -218,7 +268,7 @@
   }
 
   function categorySectionHtml(cat) {
-    var items = ARTICLES.filter(function (a) { return a.category === cat; }).slice(0, 3);
+    var items = publishedArticles().filter(function (a) { return a.category === cat; }).slice(0, 3);
     if (items.length === 0) return '';
     return '' +
       '<div class="category-section">' +
@@ -231,7 +281,7 @@
   }
 
   function categoryPageHtml(cat) {
-    var items = ARTICLES.filter(function (a) { return a.category === cat; });
+    var items = publishedArticles().filter(function (a) { return a.category === cat; });
     return '' +
       '<div class="category-section" style="padding-top:44px;">' +
         '<div class="category-header" style="border-bottom:3px solid var(--cat-' + cat + ');">' +
@@ -247,7 +297,7 @@
     if (loading) return '<div class="admin-wrap"><p class="dek">Loading&hellip;</p></div>';
     var hero = heroArticle();
     if (!hero) return '<div class="admin-wrap"><p class="dek">No articles yet.' + (currentUser ? ' <a href="#admin" style="color:var(--accent-text); text-decoration:underline;">Add one</a>.' : '') + '</p></div>';
-    var secondaries = ARTICLES.filter(function (a) { return a.id !== hero.id; }).slice(0, 2);
+    var secondaries = publishedArticles().filter(function (a) { return a.id !== hero.id; }).slice(0, 2);
     return '' +
       '<div class="hero">' +
         heroCardHtml(hero) +
@@ -264,6 +314,7 @@
     return '' +
       '<div class="admin-wrap">' +
         '<a href="#home" class="see-all" style="display:inline-block; margin-bottom:24px;">&larr; Back to the Feed</a>' +
+        (!isPublished(a) ? '<div class="tldr-box" style="border-left-color:var(--fg-dim); margin-bottom:20px;">This is a draft &mdash; only visible to editors, not public yet.</div>' : '') +
         '<div class="chip" style="background:var(--cat-' + a.category + ');">' + CAT_LABEL[a.category] + '</div>' +
         '<h1 class="headline" style="font-size:clamp(32px, 4.2vw, 52px); margin-top:16px;">' + esc(a.headline) + '</h1>' +
         (a.dek ? '<p class="dek" style="font-size:19px; margin-top:16px;">' + esc(a.dek) + '</p>' : '') +
@@ -272,7 +323,7 @@
       (a.image ? '<div class="img-ph" style="width:100%; height:520px; margin-top:32px;">' + mediaHtml(a, 40) + '</div>' : '') +
       (a.tldr ? '<div class="admin-wrap" style="padding-top:32px;"><div class="tldr-box"><strong>Well, WTF is this?: ' + esc(a.tldr) + '</strong></div></div>' : '') +
       '<div class="admin-wrap article-body" style="display:flex; flex-direction:column; gap:22px; padding-top:' + (a.tldr ? '24px' : (a.image ? '40px' : '32px')) + ';">' +
-        a.body.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') +
+        (a.bodyHtml || bodyParagraphsToHtml(a.body)) +
       '</div>';
   }
 
@@ -305,11 +356,15 @@
       return '' +
         '<div class="admin-list-item">' +
           '<div class="meta">' +
-            '<span class="chip" style="background:var(--cat-' + a.category + '); width:fit-content;">' + CAT_LABEL[a.category] + (a.id === HERO_ID ? ' &middot; HERO' : '') + '</span>' +
+            '<div style="display:flex; gap:6px; flex-wrap:wrap;">' +
+              '<span class="chip" style="background:var(--cat-' + a.category + '); width:fit-content;">' + CAT_LABEL[a.category] + (a.id === HERO_ID ? ' &middot; HERO' : '') + '</span>' +
+              (!isPublished(a) ? '<span class="chip chip-draft" style="width:fit-content;">DRAFT</span>' : '') +
+            '</div>' +
             '<strong style="font-size:15px;">' + esc(a.headline) + '</strong>' +
             '<span class="byline">' + esc(a.byline) + '</span>' +
           '</div>' +
           '<div class="actions">' +
+            '<button class="btn btn-outline btn-small" onclick="window.location.hash=\'article-' + a.id + '\'">View</button>' +
             '<button class="btn btn-outline btn-small" onclick="WTF.startEdit(\'' + a.id + '\')">Edit</button>' +
             '<button class="btn btn-outline btn-small" onclick="WTF.deleteRequest(\'' + a.id + '\')">Delete</button>' +
           '</div>' +
@@ -355,9 +410,16 @@
         '<label>Well, WTF is this? (short TL;DR)</label>' +
         '<textarea name="tldr" style="min-height:80px;" placeholder="One or two sentences summing up the story.">' + (editing ? esc(editing.tldr || '') : '') + '</textarea>' +
         '<label>Body</label>' +
-        '<textarea name="body" required placeholder="Separate paragraphs with a blank line.">' + (editing ? esc(editing.body.join('\n\n')) : '') + '</textarea>' +
-        '<div style="display:flex; gap:12px;">' +
-          '<button type="submit" class="btn btn-primary" id="save-btn">Save</button>' +
+        '<div class="rich-toolbar">' +
+          '<button type="button" title="Bold" onmousedown="event.preventDefault()" onclick="document.execCommand(\'bold\')"><strong>B</strong></button>' +
+          '<button type="button" title="Italic" onmousedown="event.preventDefault()" onclick="document.execCommand(\'italic\')"><em>I</em></button>' +
+          '<button type="button" title="Strikethrough" onmousedown="event.preventDefault()" onclick="document.execCommand(\'strikeThrough\')"><s>S</s></button>' +
+          '<button type="button" title="Underline" onmousedown="event.preventDefault()" onclick="document.execCommand(\'underline\')"><u>U</u></button>' +
+        '</div>' +
+        '<div class="rich-editor" id="body-editor" contenteditable="true">' + (editing ? (editing.bodyHtml || bodyParagraphsToHtml(editing.body)) : '') + '</div>' +
+        '<div style="display:flex; gap:12px; flex-wrap:wrap;">' +
+          '<button type="button" class="btn btn-outline" id="save-draft-btn" onclick="WTF.saveForm(\'draft\')">Save Draft</button>' +
+          '<button type="button" class="btn btn-primary" id="publish-btn" onclick="WTF.saveForm(\'published\')">Publish</button>' +
           '<button type="button" class="btn btn-outline" onclick="WTF.cancelForm()">Cancel</button>' +
         '</div>' +
         '<div class="publish-status" id="publish-status"></div>' +
@@ -442,7 +504,7 @@
   function wireAdminForm() {
     var form = document.getElementById('article-form');
     if (!form) return;
-    form.addEventListener('submit', WTF.saveForm);
+    try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch (e) {}
   }
 
   function fileToDataUrl(file) {
@@ -465,23 +527,25 @@
       pendingDeleteId = null;
       db.collection('articles').doc(id).delete().catch(function (err) { alert('Could not delete: ' + err.message); });
     },
-    saveForm: async function (ev) {
-      ev.preventDefault();
-      var form = ev.target;
+    saveForm: async function (status) {
+      var form = document.getElementById('article-form');
+      var editorEl = document.getElementById('body-editor');
       var statusEl = document.getElementById('publish-status');
-      var saveBtn = document.getElementById('save-btn');
+      var draftBtn = document.getElementById('save-draft-btn');
+      var publishBtn = document.getElementById('publish-btn');
       var headline = form.headline.value.trim();
       var dek = form.dek.value.trim();
       var byline = form.byline.value.trim();
       var category = form.category.value;
       var isHero = form.hero.checked;
-      var bodyRaw = form.body.value.trim();
-      var body = bodyRaw.split(/\n\s*\n/).map(function (p) { return p.trim(); }).filter(Boolean);
-      if (!headline || !byline || body.length === 0) {
-        alert('Please fill in a headline, byline, and at least one paragraph of body text.');
+      var bodyText = editorEl.textContent.trim();
+      if (!headline || !byline || !bodyText) {
+        alert('Please fill in a headline, byline, and some body text.');
         return;
       }
-      saveBtn.disabled = true;
+      var bodyHtml = sanitizeHtml(editorEl.innerHTML);
+      draftBtn.disabled = true;
+      publishBtn.disabled = true;
       statusEl.textContent = 'Saving…';
       try {
         var imageUrl = editingId ? (findArticle(editingId) || {}).image || null : null;
@@ -491,17 +555,19 @@
           imageUrl = await fileToDataUrl(file);
           if (imageUrl.length > 700000) {
             statusEl.textContent = '';
-            saveBtn.disabled = false;
+            draftBtn.disabled = false;
+            publishBtn.disabled = false;
             alert('That image is too large (article data must stay under ~1MB total). Please use a smaller or more compressed image.');
             return;
           }
         }
-        var wordCount = body.join(' ').split(/\s+/).length;
+        var wordCount = bodyText.split(/\s+/).length;
         var readTime = form.readTime.value.trim() || (Math.max(1, Math.round(wordCount / 200)) + ' min read');
         var data = {
           headline: headline, dek: dek, byline: byline, category: category,
-          body: body, image: imageUrl, readTime: readTime,
-          imagePosition: form.imagePosition.value, tldr: form.tldr.value.trim()
+          bodyHtml: bodyHtml, image: imageUrl, readTime: readTime,
+          imagePosition: form.imagePosition.value, tldr: form.tldr.value.trim(),
+          status: status
         };
         var docId = editingId;
         if (editingId) {
@@ -522,7 +588,8 @@
         render();
       } catch (err) {
         statusEl.textContent = 'Error: ' + err.message;
-        saveBtn.disabled = false;
+        draftBtn.disabled = false;
+        publishBtn.disabled = false;
       }
     }
   };
