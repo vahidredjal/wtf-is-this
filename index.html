@@ -102,7 +102,6 @@
     <a href="#home" style="display:block; text-decoration:none; color:inherit;"><h1 class="headline wordmark"><span style="color:var(--accent-text);">WTF</span> IS THIS</h1></a>
     <div class="nav-row" id="nav-row">
       <a href="#home" class="nav-link">Home</a>
-      <button class="nav-link" id="nav-auth-link">Log In</button>
     </div>
   </div>
   <div style="height:3px; background:var(--line-strong); margin:0 clamp(20px, 4vw, 48px);"></div>
@@ -113,6 +112,7 @@
     <div style="display:flex; flex-direction:column; gap:10px;">
       <h3 class="headline" style="font-size:26px;"><span style="color:var(--accent-text);">WTF</span> IS THIS</h3>
       <p class="byline" style="color:var(--fg-dim);">&copy; 2026 WTF IS THIS MEDIA. WE'RE NOT SORRY.</p>
+      <button class="nav-link" id="nav-auth-link" style="font-size:11px; color:var(--fg-dim); margin-top:4px;">Don't click this.</button>
     </div>
   </div>
 
@@ -353,10 +353,10 @@
         adminLink.className = 'nav-link';
         adminLink.id = 'nav-admin-link';
         adminLink.textContent = 'Edit';
-        navRow.insertBefore(adminLink, authLink);
+        navRow.appendChild(adminLink);
       }
     } else {
-      authLink.textContent = 'Log In';
+      authLink.textContent = "Don't click this.";
       authLink.onclick = function () { window.location.hash = 'login'; };
       if (existingAdmin) existingAdmin.remove();
     }
