@@ -261,7 +261,7 @@
         '<p class="byline" style="margin-top:16px;">' + esc(a.byline) + ' &middot; ' + esc(a.date) + ' &middot; ' + esc(a.readTime) + '</p>' +
       '</div>' +
       (a.image ? '<div class="img-ph" style="width:100%; height:520px; margin-top:32px;">' + mediaHtml(a, 40) + '</div>' : '') +
-      (a.tldr ? '<div class="admin-wrap" style="padding-top:32px;"><div class="tldr-box"><strong>Well, WTF is this?:</strong> ' + esc(a.tldr) + '</div></div>' : '') +
+      (a.tldr ? '<div class="admin-wrap" style="padding-top:32px;"><div class="tldr-box"><strong>Well, WTF is this?: ' + esc(a.tldr) + '</strong></div></div>' : '') +
       '<div class="admin-wrap article-body" style="display:flex; flex-direction:column; gap:22px; padding-top:' + (a.tldr ? '24px' : (a.image ? '40px' : '32px')) + ';">' +
         a.body.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') +
       '</div>';
