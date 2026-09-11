@@ -208,8 +208,22 @@
       '<div class="category-section">' +
         '<div class="category-header" style="border-bottom:3px solid var(--cat-' + cat + ');">' +
           '<h2 class="section-title" style="font-size:34px; color:var(--cat-' + cat + '-text);">' + CAT_LABEL[cat] + '</h2>' +
+          '<a href="#category-' + cat + '" class="see-all">See All &rarr;</a>' +
         '</div>' +
         '<div class="card-grid">' + items.map(gridCardHtml).join('') + '</div>' +
+      '</div>';
+  }
+
+  function categoryPageHtml(cat) {
+    var items = ARTICLES.filter(function (a) { return a.category === cat; });
+    return '' +
+      '<div class="category-section" style="padding-top:44px;">' +
+        '<div class="category-header" style="border-bottom:3px solid var(--cat-' + cat + ');">' +
+          '<h2 class="section-title" style="font-size:34px; color:var(--cat-' + cat + '-text);">' + CAT_LABEL[cat] + '</h2>' +
+        '</div>' +
+        (items.length === 0
+          ? '<p class="dek">No articles in this category yet.</p>'
+          : '<div class="card-grid">' + items.map(gridCardHtml).join('') + '</div>') +
       '</div>';
   }
 
@@ -375,6 +389,9 @@
     } else if (hash.indexOf('article-') === 0) {
       var a = findArticle(hash.slice('article-'.length));
       app.innerHTML = a ? articleHtml(a) : notFoundHtml();
+    } else if (hash.indexOf('category-') === 0) {
+      var cat = hash.slice('category-'.length);
+      app.innerHTML = CAT_LABEL[cat] ? categoryPageHtml(cat) : notFoundHtml();
     } else {
       app.innerHTML = homeHtml();
     }
@@ -482,6 +499,14 @@
       }
     }
   };
+
+  CATS.forEach(function (cat) {
+    var link = document.createElement('a');
+    link.href = '#category-' + cat;
+    link.className = 'nav-link';
+    link.textContent = CAT_LABEL[cat];
+    document.getElementById('nav-row').appendChild(link);
+  });
 
   window.addEventListener('hashchange', render);
 
