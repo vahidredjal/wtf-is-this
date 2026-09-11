@@ -87,6 +87,7 @@
   .error-status { font-size: 13px; color: var(--accent-text); margin-top: 12px; min-height: 18px; }
   .delete-confirm { background: var(--bg-alt); border: 1px solid var(--line-strong); border-radius: 8px; padding: 16px; margin-top: 12px; }
   .article-body p { font-size: 18px; line-height: 1.7; color: var(--fg); margin: 0; }
+  .tldr-box { background: var(--bg-alt); border-left: 4px solid var(--accent-text); border-radius: 4px; padding: 20px 24px; font-size: 18px; line-height: 1.6; color: var(--fg); }
 </style>
 </head>
 <body>
@@ -156,8 +157,14 @@
     return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="var(--fg-dim)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
   }
 
+  var POSITION_CSS = { center: '50% 50%', top: '50% 0%', bottom: '50% 100%', left: '0% 50%', right: '100% 50%' };
+  var POSITION_LABEL = { center: 'Center', top: 'Top', bottom: 'Bottom', left: 'Left', right: 'Right' };
+
   function mediaHtml(a, size) {
-    if (a.image) return '<img src="' + esc(a.image) + '" alt="">';
+    if (a.image) {
+      var pos = POSITION_CSS[a.imagePosition] || POSITION_CSS.center;
+      return '<img src="' + esc(a.image) + '" alt="" style="object-position:' + pos + ';">';
+    }
     return placeholderSvg(size);
   }
 
@@ -254,7 +261,8 @@
         '<p class="byline" style="margin-top:16px;">' + esc(a.byline) + ' &middot; ' + esc(a.date) + ' &middot; ' + esc(a.readTime) + '</p>' +
       '</div>' +
       (a.image ? '<div class="img-ph" style="width:100%; height:520px; margin-top:32px;">' + mediaHtml(a, 40) + '</div>' : '') +
-      '<div class="admin-wrap article-body" style="display:flex; flex-direction:column; gap:22px; padding-top:' + (a.image ? '40px' : '32px') + ';">' +
+      (a.tldr ? '<div class="admin-wrap" style="padding-top:32px;"><div class="tldr-box"><strong>Well, WTF is this?:</strong> ' + esc(a.tldr) + '</div></div>' : '') +
+      '<div class="admin-wrap article-body" style="display:flex; flex-direction:column; gap:22px; padding-top:' + (a.tldr ? '24px' : (a.image ? '40px' : '32px')) + ';">' +
         a.body.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') +
       '</div>';
   }
@@ -326,8 +334,17 @@
         '<label>Image</label>' +
         '<input type="file" name="image" accept="image/*">' +
         (editing ? '<div class="hint">Leave blank to keep the current image. Keep new images under ~500KB.</div>' : '<div class="hint">Optional &mdash; leave blank to use a placeholder. Keep images under ~500KB.</div>') +
+        '<label>Image Position</label>' +
+        '<select name="imagePosition">' +
+          Object.keys(POSITION_LABEL).map(function (p) {
+            return '<option value="' + p + '"' + (editing && (editing.imagePosition || 'center') === p ? ' selected' : '') + '>' + POSITION_LABEL[p] + '</option>';
+          }).join('') +
+        '</select>' +
+        '<div class="hint">Which part of the photo stays in frame if it gets cropped.</div>' +
         '<label>Read Time</label>' +
         '<input type="text" name="readTime" value="' + (editing ? esc(editing.readTime) : '') + '" placeholder="e.g. 4 min read">' +
+        '<label>Well, WTF is this? (short TL;DR)</label>' +
+        '<textarea name="tldr" style="min-height:80px;" placeholder="One or two sentences summing up the story.">' + (editing ? esc(editing.tldr || '') : '') + '</textarea>' +
         '<label>Body</label>' +
         '<textarea name="body" required placeholder="Separate paragraphs with a blank line.">' + (editing ? esc(editing.body.join('\n\n')) : '') + '</textarea>' +
         '<div style="display:flex; gap:12px;">' +
@@ -474,7 +491,8 @@
         var readTime = form.readTime.value.trim() || (Math.max(1, Math.round(wordCount / 200)) + ' min read');
         var data = {
           headline: headline, dek: dek, byline: byline, category: category,
-          body: body, image: imageUrl, readTime: readTime
+          body: body, image: imageUrl, readTime: readTime,
+          imagePosition: form.imagePosition.value, tldr: form.tldr.value.trim()
         };
         var docId = editingId;
         if (editingId) {
