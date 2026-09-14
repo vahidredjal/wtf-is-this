@@ -112,7 +112,7 @@
 
   function heroCardHtml(a) {
     return '' +
-      '<a class="card card-link" href="#article-' + esc(a.id) + '">' +
+      '<a class="card card-link" href="/article/' + esc(a.id) + '">' +
         '<div class="img-ph" style="width:100%; height:460px;">' + mediaHtml(a, 40) + '</div>' +
         '<div class="chip" style="background:var(--cat-' + a.category + ');">' + CAT_LABEL[a.category] + '</div>' +
         '<h2 class="headline" style="font-size:clamp(30px, 3.4vw, 46px);">' + esc(a.headline) + '</h2>' +
@@ -123,7 +123,7 @@
 
   function secondaryCardHtml(a) {
     return '' +
-      '<a class="card card-link" href="#article-' + esc(a.id) + '">' +
+      '<a class="card card-link" href="/article/' + esc(a.id) + '">' +
         '<div class="img-ph" style="width:100%; height:200px;">' + mediaHtml(a, 40) + '</div>' +
         '<div class="chip" style="background:var(--cat-' + a.category + ');">' + CAT_LABEL[a.category] + '</div>' +
         '<h3 class="headline" style="font-size:24px;">' + esc(a.headline) + '</h3>' +
@@ -133,7 +133,7 @@
 
   function gridCardHtml(a) {
     return '' +
-      '<a class="card card-link" href="#article-' + esc(a.id) + '">' +
+      '<a class="card card-link" href="/article/' + esc(a.id) + '">' +
         '<div class="img-ph" style="width:100%; height:220px;">' + mediaHtml(a, 36) + '</div>' +
         '<div class="chip" style="background:var(--cat-' + a.category + ');">' + CAT_LABEL[a.category] + '</div>' +
         '<h3 class="headline" style="font-size:22px;">' + esc(a.headline) + '</h3>' +
@@ -148,7 +148,7 @@
       '<div class="category-section">' +
         '<div class="category-header" style="border-bottom:3px solid var(--cat-' + cat + ');">' +
           '<h2 class="section-title" style="font-size:34px; color:var(--cat-' + cat + '-text);">' + CAT_LABEL[cat] + '</h2>' +
-          '<a href="#category-' + cat + '" class="see-all">See All &rarr;</a>' +
+          '<a href="/category/' + cat + '" class="see-all">See All &rarr;</a>' +
         '</div>' +
         '<div class="card-grid">' + items.map(gridCardHtml).join('') + '</div>' +
       '</div>';
@@ -170,7 +170,7 @@
   function homeHtml() {
     if (loading) return '<div class="admin-wrap"><p class="dek">Loading&hellip;</p></div>';
     var hero = heroArticle();
-    if (!hero) return '<div class="admin-wrap"><p class="dek">No articles yet.' + (currentUser ? ' <a href="#admin" style="color:var(--accent-text); text-decoration:underline;">Add one</a>.' : '') + '</p></div>';
+    if (!hero) return '<div class="admin-wrap"><p class="dek">No articles yet.' + (currentUser ? ' <a href="/admin" style="color:var(--accent-text); text-decoration:underline;">Add one</a>.' : '') + '</p></div>';
     var secondaries = publishedArticles().filter(function (a) { return a.id !== hero.id; }).slice(0, 2);
     return '' +
       '<div class="hero">' +
@@ -187,7 +187,7 @@
   function articleHtml(a) {
     return '' +
       '<div class="admin-wrap">' +
-        '<a href="#home" class="see-all" style="display:inline-block; margin-bottom:24px;">&larr; Back to the Feed</a>' +
+        '<a href="/" class="see-all" style="display:inline-block; margin-bottom:24px;">&larr; Back to the Feed</a>' +
         (!isPublished(a) ? '<div class="tldr-box" style="border-left-color:var(--fg-dim); margin-bottom:20px;">This is a draft &mdash; only visible to editors, not public yet.</div>' : '') +
         '<div class="chip" style="background:var(--cat-' + a.category + ');">' + CAT_LABEL[a.category] + '</div>' +
         '<h1 class="headline" style="font-size:clamp(32px, 4.2vw, 52px); margin-top:16px;">' + esc(a.headline) + '</h1>' +
@@ -202,7 +202,7 @@
   }
 
   function notFoundHtml() {
-    return '<div class="admin-wrap"><h1 class="headline" style="font-size:40px;">Can\'t find that one.</h1><p class="dek" style="margin-top:12px;"><a href="#home" style="color:var(--accent-text); text-decoration:underline;">Back to the feed</a></p></div>';
+    return '<div class="admin-wrap"><h1 class="headline" style="font-size:40px;">Can\'t find that one.</h1><p class="dek" style="margin-top:12px;"><a href="/" style="color:var(--accent-text); text-decoration:underline;">Back to the feed</a></p></div>';
   }
 
   function loginHtml() {
@@ -238,7 +238,7 @@
             '<span class="byline">' + esc(a.byline) + '</span>' +
           '</div>' +
           '<div class="actions">' +
-            '<button class="btn btn-outline btn-small" onclick="window.location.hash=\'article-' + a.id + '\'">View</button>' +
+            '<button class="btn btn-outline btn-small" onclick="window.location.href=\'/article/' + a.id + '\'">View</button>' +
             '<button class="btn btn-outline btn-small" onclick="WTF.startEdit(\'' + a.id + '\')">Edit</button>' +
             '<button class="btn btn-outline btn-small" onclick="WTF.deleteRequest(\'' + a.id + '\')">Delete</button>' +
           '</div>' +
@@ -303,10 +303,10 @@
   }
 
   function adminHtml() {
-    if (!currentUser) return '<div class="admin-wrap"><p class="dek">You need to <a href="#login" style="color:var(--accent-text); text-decoration:underline;">log in</a> to edit articles.</p></div>';
+    if (!currentUser) return '<div class="admin-wrap"><p class="dek">You need to <a href="/login" style="color:var(--accent-text); text-decoration:underline;">log in</a> to edit articles.</p></div>';
     return '' +
       '<div class="admin-wrap">' +
-        '<a href="#home" class="see-all" style="display:inline-block; margin-bottom:24px;">&larr; Back to the Feed</a>' +
+        '<a href="/" class="see-all" style="display:inline-block; margin-bottom:24px;">&larr; Back to the Feed</a>' +
         '<h1 class="headline" style="font-size:clamp(28px, 3.4vw, 40px); margin-bottom:12px;">Edit Articles</h1>' +
         '<p class="dek" style="margin-bottom:24px;">Signed in as ' + esc(currentUser.email) + '. Changes go live for everyone immediately.</p>' +
         (window.__WTF_SHOW_FORM__ ? adminFormHtml() : '<button class="btn btn-primary" onclick="WTF.startNew()">+ New Article</button>') +
@@ -327,7 +327,7 @@
       authLink.onclick = function () { auth.signOut(); };
       if (!existingAdmin) {
         var adminLink = document.createElement('a');
-        adminLink.href = '#admin';
+        adminLink.href = '/admin';
         adminLink.className = 'nav-link';
         adminLink.id = 'nav-admin-link';
         adminLink.textContent = 'Edit';
@@ -335,26 +335,45 @@
       }
     } else {
       authLink.textContent = "Don't click this.";
-      authLink.onclick = function () { window.location.hash = 'login'; };
+      authLink.onclick = function () { window.location.href = '/login'; };
       if (existingAdmin) existingAdmin.remove();
     }
   }
 
+  function legacyHashRedirect() {
+    // Old shared/bookmarked links used #article-x style hash routes. Hash
+    // fragments never reach the server, so anything server-rendered (link
+    // previews, the SSR homepage/article functions) can't see them anyway.
+    // If one shows up client-side, bounce to the equivalent real path once.
+    if (!window.location.hash) return false;
+    var legacy = window.location.hash.slice(1);
+    var target = null;
+    if (legacy === 'home' || legacy === '') target = '/';
+    else if (legacy === 'login') target = '/login';
+    else if (legacy === 'admin') target = '/admin';
+    else if (legacy.indexOf('article-') === 0) target = '/article/' + legacy.slice('article-'.length);
+    else if (legacy.indexOf('category-') === 0) target = '/category/' + legacy.slice('category-'.length);
+    if (!target) return false;
+    window.location.replace(target);
+    return true;
+  }
+
   function render() {
+    if (legacyHashRedirect()) return;
     renderNav();
-    var hash = window.location.hash.replace('#', '') || 'home';
+    var path = window.location.pathname.replace(/\/+$/, '') || '/';
     var app = document.getElementById('app');
-    if (hash === 'login') {
+    if (path === '/login') {
       app.innerHTML = currentUser ? homeHtml() : loginHtml();
       if (!currentUser) wireLoginForm();
-    } else if (hash === 'admin') {
+    } else if (path === '/admin') {
       app.innerHTML = adminHtml();
       if (currentUser) wireAdminForm();
-    } else if (hash.indexOf('article-') === 0) {
-      var a = findArticle(hash.slice('article-'.length));
+    } else if (path.indexOf('/article/') === 0) {
+      var a = findArticle(decodeURIComponent(path.slice('/article/'.length)));
       app.innerHTML = a ? articleHtml(a) : notFoundHtml();
-    } else if (hash.indexOf('category-') === 0) {
-      var cat = hash.slice('category-'.length);
+    } else if (path.indexOf('/category/') === 0) {
+      var cat = decodeURIComponent(path.slice('/category/'.length));
       app.innerHTML = CAT_LABEL[cat] ? categoryPageHtml(cat) : notFoundHtml();
     } else {
       app.innerHTML = homeHtml();
@@ -370,7 +389,7 @@
       var email = form.email.value.trim();
       var password = form.password.value;
       auth.signInWithEmailAndPassword(email, password).then(function () {
-        window.location.hash = 'admin';
+        window.location.href = '/admin';
       }).catch(function (err) {
         document.getElementById('login-error').textContent = err.message;
       });
@@ -481,13 +500,11 @@
 
   CATS.forEach(function (cat) {
     var link = document.createElement('a');
-    link.href = '#category-' + cat;
+    link.href = '/category/' + cat;
     link.className = 'nav-link';
     link.textContent = CAT_LABEL[cat];
     document.getElementById('nav-row').appendChild(link);
   });
-
-  window.addEventListener('hashchange', render);
 
   auth.onAuthStateChanged(function (user) {
     currentUser = user;

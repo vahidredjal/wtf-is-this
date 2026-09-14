@@ -2,7 +2,18 @@
   functions = "netlify/functions"
 
 [[redirects]]
+  from = "/article/*"
+  to = "/.netlify/functions/ssr-article"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/"
   to = "/.netlify/functions/ssr"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
