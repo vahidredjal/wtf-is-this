@@ -39,7 +39,7 @@
   .nav-link { font-weight: 700; font-size: 15px; letter-spacing: 0.03em; text-transform: uppercase; background: none; border: none; cursor: pointer; font-family: inherit; padding: 0; }
   .img-ph { position: relative; overflow: hidden; background-color: var(--bg-card); }
   .img-ph svg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.55; }
-  .img-ph img { width:100%; height:100%; object-fit:cover; display:block; }
+  .img-ph img { width:100%; height:100%; object-fit:contain; display:block; }
   .page { max-width: 1440px; margin: 0 auto; padding-bottom: 64px; }
   .utility-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px clamp(20px, 4vw, 48px); border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 8px; }
   .masthead { display: flex; flex-direction: column; align-items: center; padding: 32px clamp(20px, 4vw, 48px) 0; }

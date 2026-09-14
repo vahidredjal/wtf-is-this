@@ -67,7 +67,7 @@ async function fetchHeroId() {
 function isPublished(a) { return (a.status || 'published') !== 'draft'; }
 
 function mediaHtml(a) {
-  if (a.image) return '<img src="' + esc(a.image) + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">';
+  if (a.image) return '<img src="' + esc(a.image) + '" alt="" style="width:100%;height:100%;object-fit:contain;display:block;">';
   return '';
 }
 
