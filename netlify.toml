@@ -2,6 +2,12 @@
   functions = "netlify/functions"
 
 [[redirects]]
+  from = "/article/:id/image"
+  to = "/.netlify/functions/article-image?id=:id"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/article/*"
   to = "/.netlify/functions/ssr-article"
   status = 200

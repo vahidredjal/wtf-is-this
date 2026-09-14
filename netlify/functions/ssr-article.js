@@ -53,7 +53,7 @@ exports.handler = async function (event) {
     var html = shared.pageShell(renderArticle(a), {
       title: a.headline + ' — WTF Is This',
       description: description,
-      image: a.image || shared.DEFAULT_IMAGE,
+      image: a.image ? (shared.SITE_URL + '/article/' + encodeURIComponent(a.id) + '/image') : shared.DEFAULT_IMAGE,
       url: shared.SITE_URL + '/article/' + encodeURIComponent(a.id),
       type: 'article'
     });
